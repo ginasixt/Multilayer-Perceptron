@@ -37,7 +37,7 @@ class MLP(nn.Module):
     def __init__(self, input_dim):
         super(MLP, self).__init__()
         self.model = nn.Sequential(
-            nn.Linear(input_dim, 64),  # Eingabe: 21 input Features (no real layer only the input data) -> 64 Neuronen
+            nn.Linear(input_dim, 64),  # 21 input Features (no real layer only the input data) -> 64 Neuronen
             nn.ReLU(),
 
             nn.Linear(64, 32), # 64 Neuronen -> 32 Neuronen
@@ -48,40 +48,7 @@ class MLP(nn.Module):
             # Sigmoid activation function for binary classification, so the output is a probability (0-1)
             nn.Sigmoid() 
      )
-    
-        # Input layer:
-            # 21 input features (BMI, age, etc.)
-            # Not a “real layer” in PyTorch, just data
-
-        # 1st hidden layer:
-            # 64 neurons
-            # Each neuron receives all 21 inputs
-            # A total of 64 neurons × getting 21 weights + 64 biases
-        
-            # Activation function: ReLU (Rectified Linear Unit)
-            # -> it ensures that some neurons are activated (fired) and others are not (0 output, so no influence on the next layer)
-            # Activation functions make the neural network nonlinear.
-            # This enables it to recognize complex, combinatorial patterns—e.g., “only when several risk factors occur together.”
-
-        # 2nd hidden layer:
-            # 32 neurons
-            # Each neuron receives 64 inputs from the previous layer
-
-
-        # Output layer:
-            # 1 neuron
-            # uses the sigmoid activation function, to output a probability
-            # It returns a probability (0–1) of whether or not diabetes is present
-
-        # In each layer, every single neuron receives all outputs from the previous layer.
-        # Each input is multiplied by a (after training fixed) weight, and a bias is added.
-        
-        # The sum is passed through an activation function (e.g., ReLU).
-        # This activation determines whether the neuron "fires" — meaning,
-        # whether it outputs a value to the next layer or not (if the activation is 0).
-        # so only relevant neurons influence the next layer, the network is not liniar anymore, so complex patterns can be learned.
-    
-
+      
     def forward(self, x):
         return self.model(x)
 
