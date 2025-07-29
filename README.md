@@ -44,8 +44,8 @@ ReLU itself is simple:
 - Outputs **0** if the input ≤ 0 --> the neuron does not influence the next layer  
 - Outputs the input > 0 --> the neuron **fires** and passes the input trough
 
-So applied to our neurons, if the **weighted sum of inputs**  
-#TODO insert function 
+So applied to our neurons, if the **weighted sum of inputs** \
+$`w_1 x_1 + w_2 x_2 + ... + b`$ \
 exceeds the ReLU threshold (i.e., z > 0), the neuron becomes active (fires) and contributes to the next layer.
 
 ReLU doesn't explicitly model logical rules like "high BMI + no exercise + age > 60",  
@@ -82,7 +82,7 @@ outputs = model(X_train)
 
 The input matrix X_train (size: [n_samples, n_features]) is propagated through the network. \
 Each layer performs: \
-z=X⋅W+b \
+$`z = XW + b`$ \
 where W is the weight matrix and b is the bias vector.\
 A non-linear activation function (e.g., ReLU) is applied after each layer to allow complex relationships to emerge. \
 The output layer applies a Sigmoid function to return probabilities between 0 and 1 for each patient.
@@ -126,7 +126,7 @@ It’s controlled by a hyperparameter called the **learning rate** (often writte
 **Example:** \
 A weight currently has the value `0.5`, and its gradient is `+0.2`. \
 If the learning rate is `0.01`, the new weight becomes: \
-`0.5 - 0.01 × 0.2 = 0.498`, \
+$`0,5 - 0,01 * 0,2 = 0,498`$ \
 we decrease the weight slightly. So the optimizer nudges the weight in the right direction.  \
 This is repeated for every parameter, every epoch.
 
