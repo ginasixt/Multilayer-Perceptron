@@ -157,7 +157,7 @@ weighted avg       0.84      0.87      0.84     50736
 - Recall (1.0): Only 17% of actual diabetics were correctly detected
 - F1-Score: shows poor diabetic detection performance
 
-### Conclusion
+### Conclusion after first Deep Learning Model
 The model still struggles with recall for diabetic cases. This could be improved by:
 - Adding more layers or neurones, but with being aware for overfitting
 - Adding more iterations, watching the Loss Log
@@ -167,3 +167,79 @@ The model still struggles with recall for diabetic cases. This could be improved
    - Using focal loss instead of BCE to focus on difficult cases
 - Using different optimizer like Adam and adjusting the learning rate
 - weigt decay or dropout
+
+
+## Improving my model
+
+### 1. Adding Validation Data Set
+I split data into training, validation, and test sets /
+70% training, 15% validation, 15% test, to plot a diagramm and visualize potential overfitting during training. 
+```text
+Epoch 0, Loss: 0.6976
+Epoch 100, Loss: 0.3207
+Epoch 200, Loss: 0.3155
+Epoch 300, Loss: 0.3135
+Epoch 400, Loss: 0.3124
+Epoch 500, Loss: 0.3117
+Epoch 600, Loss: 0.3112
+Epoch 700, Loss: 0.3108
+Epoch 800, Loss: 0.3104
+Epoch 900, Loss: 0.3099
+[INFO] Plotting training and validation loss ...
+```
+
+<img width="500" height="300" alt="Training_vs_validation_Loss" src="https://github.com/user-attachments/assets/1eed5ee4-09df-41a7-87f0-d9c9ed1acc75" />
+
+```text
+=== Evaluation ===
+Accuracy: 0.8676547881845895
+Confusion Matrix:
+ [[32107   733]
+ [ 4303   909]]
+Classification Report:
+               precision    recall  f1-score   support
+
+         0.0       0.88      0.98      0.93     32840
+         1.0       0.55      0.17      0.27      5212
+
+    accuracy                           0.87     38052
+   macro avg       0.72      0.58      0.60     38052
+weighted avg       0.84      0.87      0.84     38052
+```
+
+### 2. Balancing out my dataset with pos_weight
+
+```text
+Epoch 0, Loss: 1.2060
+Epoch 100, Loss: 0.8759
+Epoch 200, Loss: 0.8639
+Epoch 300, Loss: 0.8597
+Epoch 400, Loss: 0.8571
+Epoch 500, Loss: 0.8548
+Epoch 600, Loss: 0.8522
+Epoch 700, Loss: 0.8494
+Epoch 800, Loss: 0.8462
+Epoch 900, Loss: 0.8431
+```
+
+<img width="500" height="300" alt="with_pos_weight" src="https://github.com/user-attachments/assets/149b8bbe-84b0-4af5-9b43-4ec490402d92" />
+
+
+```text
+=== Evaluation ===
+Accuracy: 0.7221433827394093
+Confusion Matrix:
+ [[23347  9493]
+ [ 1080  4132]]
+Classification Report:
+               precision    recall  f1-score   support
+
+         0.0       0.96      0.71      0.82     32840
+         1.0       0.30      0.79      0.44      5212
+
+    accuracy                           0.72     38052
+   macro avg       0.63      0.75      0.63     38052
+weighted avg       0.87      0.72      0.76     38052
+```
+
+
