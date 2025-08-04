@@ -208,7 +208,11 @@ weighted avg       0.84      0.87      0.84     38052
 ```
 
 ### 2. Balancing out my dataset with pos_weight
+In the original dataset, the number of negative cases (non-diabetics) far exceeds the number of positive cases (diabetics). This class imbalance causes the model to prioritize the majority class during training, leading to high overall accuracy, but poor recall for diabetics. \
+To address this, we introduc pos_weight, it increases the penalty for misclassifying the minority class (diabetics). It scales the positive (class 1) loss term to compensate for the imbalance, helping the model treat both classes more equally during training 
 
+As a result, the model becomes more sensitive to the minority class, learning to identify diabetics more accurately  even at the cost of a slightly reduced overall accuracy. \
+By introducing pos_weight, we change how the loss is computed. Now, the model is punished more harshly for failing to recognize diabetics, which naturally results in higher overall loss values during training:
 ```text
 Epoch 0, Loss: 1.2060
 Epoch 100, Loss: 0.8759
@@ -241,5 +245,79 @@ Classification Report:
    macro avg       0.63      0.75      0.63     38052
 weighted avg       0.87      0.72      0.76     38052
 ```
+We can now see in the confusion matrix that the model correctly identifies more diabetes patients. 
+- False Negatives (has diabetes, missed)
+  - before: 5,805
+  - after using pos_weight: 1080
+- True Positives (has diabetes, detected):
+  - before: 1,192
+  - after: 4132
+
+However, it loses some accuracy for non-diabetics: 
+- True Negatives (no diabetes, predicted correctly):
+  - before: 42,846
+  - after: 23347
+- False Positives (no diabetes, predicted as yes):
+  - before: 893
+  - after: 9493
+ 
+Although overall accuracy has decreased, recall for diabetics (1.0) has improved significantly (from 0.17 to 0.79), Even if more patients are incorrectly diagnosed as diabetic (the recall rate is lower), this is preferable to the opposite. Particularly in medical models, we prefer to risk false alarms as long as the probability of overlooking patients with diabetes is lower.
+
+### Added stratify whwile splitting data
+Because the data is not balanced we need to make sure, that the ratio of y (diabetes y/n) in the val, test and training data set, is the same as in the base data set. So 
+With stratify=y, we now ensure that all splits (train/validation/test) have the same class distribution (diabetes y/n) as the original.
+This is important for unbalanced datasets, the evaluation can looks better without this varaible, but is not representative.
+With the variable our Evaluationa is indeed slightly worse:
+```text
+Accuracy: 0.7192788815305372
+Confusion Matrix:
+ [[23186  9564]
+ [ 1118  4184]]
+```
+```text
+Classification Report:
+               precision    recall  f1-score   support
+
+         0.0       0.95      0.71      0.81     32750
+         1.0       0.30      0.79      0.44      5302
+
+    accuracy                           0.72     38052
+   macro avg       0.63      0.75      0.63     38052
+weighted avg       0.86      0.72      0.76     38052
+```
+### Early Stopping
+Early stop counters overfitting by stopping epochs, when the loss of the validation data is not improving anymore.
+```text
+Epoch 0, Loss: 1.1915, Val Loss 1.1857
+Epoch 100, Loss: 0.8750, Val Loss 0.8759
+Epoch 200, Loss: 0.8615, Val Loss 0.8662
+Epoch 300, Loss: 0.8572, Val Loss 0.8648
+Early stopping at epoch 328
+```
+
+```text
+=== Evaluation ===
+Accuracy: 0.7182014085987596
+Confusion Matrix:
+ [[23071  9679]
+ [ 1044  4258]]
+```
+```text
+Classification Report:
+               precision    recall  f1-score   support
+
+         0.0       0.96      0.70      0.81     32750
+         1.0       0.31      0.80      0.44      5302
+
+    accuracy                           0.72     38052
+   macro avg       0.63      0.75      0.63     38052
+weighted avg       0.87      0.72      0.76     38052
+```
+<img width="1000" height="600" alt="loss_plot" src="https://github.com/user-attachments/assets/88456fc1-07b3-482c-abc2-3bc99f91b5d2" />
+
+
+
+
+
 
 
