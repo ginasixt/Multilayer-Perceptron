@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, roc_auc_score
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
@@ -29,9 +29,9 @@ X = scaler.fit_transform(X)
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Split data into training, validation, and test sets
-# 70% training, 15% validation, 15% test
-X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
-X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.1765, random_state=42)
+# First split into train+val and test, then split train+val into train and val
+X_temp, X_test, y_temp, y_test = train_test_split(X, y, test_size=0.15, random_state=42, stratify=y) # 
+X_train, X_val, y_train, y_val = train_test_split(X_temp, y_temp, test_size=0.1765, random_state=42, stratify=y_temp)
 
 
 # Convert to PyTorch tensors
@@ -68,18 +68,24 @@ class MLP(nn.Module):
     # TODO: Dropout 
       
     def forward(self, x):
-        return self.model(x)
+        return self.model(x) 
 
 model = MLP(input_dim=X_train.shape[1])
 
 # Loss and optimizer
 criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-4) # L2 regularization with weight_decay weight_decay=1e-4, verbessert aich minimal
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+    optimizer, mode='min', factor=0.5, patience=5,
+)
 
 # Lists to store losses for plotting later
 train_losses = []
 val_losses = []
 
+best_val_loss = float("inf")
+patience = 100
+counter = 0
 # Training Loop
 print("[INFO] Training model ...")
 for epoch in range(1000):
@@ -100,7 +106,24 @@ for epoch in range(1000):
     val_losses.append(val_loss.item())
 
     if epoch % 100 == 0:
-        print(f"Epoch {epoch}, Loss: {loss.item():.4f}")
+        print(f"Epoch {epoch}, Loss: {loss.item():.4f}, Val Loss {val_loss.item():.4f}")
+
+     # Early stopping
+    if val_loss.item() < best_val_loss:
+        best_val_loss = val_loss.item()
+        counter = 0
+        best_model_state = model.state_dict()  # save best model
+    else:
+        counter += 1
+        if counter >= patience:
+            print(f"Early stopping at epoch {epoch}")
+            break
+
+    scheduler.step(val_loss.item())
+
+# Load best model
+model.load_state_dict(best_model_state)
+
 
 # Plotting the training and validation loss
 print("[INFO] Plotting training and validation loss ...")
@@ -128,3 +151,23 @@ print("\n=== Evaluation ===")
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
 print("Classification Report:\n", classification_report(y_test, y_pred))
+
+# AUC-ROC Berechnung
+y_true = y_test.numpy()               # Falls y_test noch ein Tensor ist
+y_scores = y_pred_probs.numpy()      # Modell-Output (Wahrscheinlichkeiten)
+
+fpr, tpr, thresholds = roc_curve(y_true, y_scores)
+roc_auc = roc_auc_score(y_true, y_scores)
+
+# Plot
+plt.figure()
+plt.plot(fpr, tpr, label=f"AUC = {roc_auc:.2f}")
+plt.plot([0, 1], [0, 1], "k--")  # Diagonale
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve")
+plt.legend(loc="lower right")
+plt.grid(True)
+plt.savefig("ROC_curve.png")
+plt.show()
+
